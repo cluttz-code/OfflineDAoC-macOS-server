@@ -63,6 +63,10 @@
         <EmbeddedResource Include="..\Bots\autonomous\data\dungeon_navigation_points.json" />
         <EmbeddedResource Include="..\Bots\autonomous\data\darkness_falls_raid_event_mobs.json" />
         <EmbeddedResource Include="..\Bots\autonomous\data\darkness_falls_navigation_proofs.json" />
+
+        <EmbeddedResource Include="..\Bots\autonomous\data\chat\corpus.json" LogicalName="DOL.GS.bots.autonomous.data.chat.corpus.json" />
+        <EmbeddedResource Include="..\Bots\autonomous\data\chat\voices.json" LogicalName="DOL.GS.bots.autonomous.data.chat.voices.json" />
+        <EmbeddedResource Include="..\Bots\autonomous\data\chat\places.json" LogicalName="DOL.GS.bots.autonomous.data.chat.places.json" />
         <TranslationFiles Include=".\language\**\*.txt" />
         <APIDocs Include=".\API\docs\*" />
         <Content Include="API\docs\index.css" />

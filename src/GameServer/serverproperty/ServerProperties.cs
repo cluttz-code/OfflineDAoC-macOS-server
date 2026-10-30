@@ -28,6 +28,9 @@ namespace DOL.GS.ServerProperties
 			{
 				Load(prop.Value.Item1, prop.Value.Item2, prop.Value.Item3);
 			}
+
+			// Living Server: new defaults reach worlds that ran an earlier build (once).
+			LivingServerSettingsUpgrade.Apply(propDict);
 			
 			// Refresh static dict values for display
 			AllCurrentProperties = propDict.ToDictionary(k => k.Key, v => v.Value.Item2.GetValue(null));
@@ -736,6 +739,20 @@ namespace DOL.GS.ServerProperties
 		/// </summary>
 		[ServerProperty("rates", "bot_xp_rate", "The autonomous player-bot Experience Points Rate Modifier. This does not affect real player characters or temporary companion helpers.", 1.0)]
 		public static double BOT_XP_RATE;
+
+		/// <summary>
+		/// Optional XP rates by level range for real players, replacing XP_RATE inside each listed
+		/// range (see LevelRangeXpRates). Empty keeps the flat rate.
+		/// </summary>
+		[ServerProperty("rates", "xp_rate_by_level", "Optional XP rate by level range for real player characters, for example 1-19:3;20-34:5;35-50:12. Inside a listed range its rate replaces xp_rate; other levels keep xp_rate. RvR zones keep rvr_zones_xp_rate. Empty (the default) or an invalid value keeps the flat xp_rate.", "1-19:3;20-34:5;35-50:12")]
+		public static string XP_RATE_BY_LEVEL;
+
+		/// <summary>
+		/// Optional XP rates by level range for autonomous gamebots, replacing BOT_XP_RATE inside each
+		/// listed range (see LevelRangeXpRates). Empty keeps the flat rate.
+		/// </summary>
+		[ServerProperty("rates", "bot_xp_rate_by_level", "Optional XP rate by level range for autonomous gamebots, for example 1-19:1.5;20-34:2.5;35-50:6. Inside a listed range its rate replaces bot_xp_rate; other levels keep bot_xp_rate. In RvR zones the result is still multiplied by rvr_zones_xp_rate, as bot_xp_rate is. Empty (the default) or an invalid value keeps the flat bot_xp_rate. Companion bots and real players are not affected.", "1-19:1.5;20-34:2.5;35-50:6")]
+		public static string BOT_XP_RATE_BY_LEVEL;
 
 		/// <summary>
 		/// The CL Experience Rate
@@ -2330,6 +2347,166 @@ namespace DOL.GS.ServerProperties
 		/// </summary>
 		[ServerProperty("guild", "guild_banner_lost_time", "When a banner is lost to the enemy how many minutes is the wait before purchase is allowed?", (ushort)1440)]
 		public static ushort GUILD_BANNER_LOST_TIME;
+
+		/// <summary>
+		/// Autonomous gamebots form realm guilds, carry guild names and can be invited into a player's guild.
+		/// </summary>
+		[ServerProperty("guild", "bot_guilds_enabled", "Autonomous gamebots form and join realm guilds (see docs/BOT-GUILDS.md), and players can /ginvite them. False keeps every gamebot guildless; saved memberships are kept.", true)]
+		public static bool BOT_GUILDS_ENABLED;
+
+		/// <summary>
+		/// Share of eligible autonomous gamebots placed in bot guilds.
+		/// </summary>
+		[ServerProperty("guild", "bot_guild_share", "Share (0 to 1) of eligible autonomous gamebots that bot guild formation places in guilds.", 0.70)]
+		public static double BOT_GUILD_SHARE;
+
+		/// <summary>
+		/// Lowest level at which an autonomous gamebot joins a bot guild.
+		/// </summary>
+		[ServerProperty("guild", "bot_guild_min_level", "Lowest level at which an autonomous gamebot is placed in a bot guild.", 5)]
+		public static int BOT_GUILD_MIN_LEVEL;
+
+		/// <summary>
+		/// Bot guild members talk in guild chat and recruit in /faction (when bot guilds are on).
+		/// </summary>
+		[ServerProperty("guild", "bot_guild_social", "When bot guilds are on: guild members greet, congratulate and chat in guild chat when a real member can hear, answer your /gu, and bot guild officers recruit in /faction.", true)]
+		public static bool BOT_GUILD_SOCIAL;
+
+		/// <summary>
+		/// Bot guild officers may invite a player into their guild with a yes/no dialog.
+		/// </summary>
+		[ServerProperty("guild", "bot_guild_recruit_player", "When bot guild social life is on: bot guild officers may invite you to their guild with a yes/no dialog (when you ask for a guild, or now and then when you are nearby and unguilded).", true)]
+		public static bool BOT_GUILD_RECRUIT_PLAYER;
+
+		/// <summary>
+		/// Bot guilds claim keeps and towers their realm takes, under the usual claim rules.
+		/// </summary>
+		[ServerProperty("guild", "bot_guild_claims_keeps", "When bot guilds are on: after a realm takes a keep or tower, a bot guild with enough members inside claims it (claim_num, half for towers; guilds_claim_limit), never while a real player of that realm is inside. Its warbands answer first when that keep is attacked.", true)]
+		public static bool BOT_GUILD_CLAIMS_KEEPS;
+
+		/// <summary>
+		/// Guilded gamebots pay dues from real looted coin, earn merit points, and bot guild leaders buy guild buffs.
+		/// </summary>
+		[ServerProperty("guild", "bot_guild_economy", "When bot guilds are on: guilded gamebots pay their guild's dues from the real coin they loot, their level-ups earn the guild merit points as a player's do, and bot guild leaders spend 1,000 merit points on a 24-hour guild buff.", true)]
+		public static bool BOT_GUILD_ECONOMY;
+
+		/// <summary>
+		/// Each realm's RvR and raiding bot guilds form one alliance.
+		/// </summary>
+		[ServerProperty("guild", "bot_guild_alliances", "When bot guilds are on: each realm's RvR and raiding bot guilds form one alliance (up to four guilds); a player in one of them hears its alliance chat. Alliances with a player's guild are never touched.", true)]
+		public static bool BOT_GUILD_ALLIANCES;
+
+		/// <summary>
+		/// Autonomous gamebots have personality types and traits that tilt how they spend their time.
+		/// </summary>
+		[ServerProperty("bots", "bot_personalities_enabled", "Autonomous gamebots get a personality (Leveler, Socialite, Daredevil, Explorer, Crafter, No-lifer) and traits, fixed from their id, that tilt town breaks, solo versus group goals, dungeon choice, camp choice and how often they talk (see docs/BOT-PERSONALITIES.md). Hard rules never change. False keeps today's behavior.", true)]
+		public static bool BOT_PERSONALITIES_ENABLED;
+
+		/// <summary>
+		/// Autonomous gamebots react to a player-shaped attacker like a player (stefanrows/OfflineDAoC 0.271).
+		/// </summary>
+		[ServerProperty("bots", "bot_incoming_fire_reaction", "Autonomous gamebots hit by a player, bot or pet react like a player: a 0.3-2.5 s reaction delay (healers heal meanwhile; shorter for tanks and bold personalities), an area spell from a distance doesn't make its caster the bot's target, and healers cure a dotted group with the group cure. Companions and bots in your group are not affected. False keeps the immediate reaction.", true)]
+		public static bool BOT_INCOMING_FIRE_REACTION;
+
+		/// <summary>
+		/// Autonomous gamebots speak lines from the bot-voices corpus in their own writing style.
+		/// </summary>
+		[ServerProperty("bots", "bot_voices_enabled", "Autonomous gamebots say pre-written, period lines (docs/bot-voices/DESIGN.md) chosen by personality, level, realm, class and situation, each in its own writing style, without repeating a line in a realm within 6 hours. On by default since Beta 1.1 (the talking update). False keeps the old lines.", true)]
+		public static bool BOT_VOICES_ENABLED;
+
+		/// <summary>
+		/// Bots of a realm hold debates and long threads in /faction.
+		/// </summary>
+		[ServerProperty("bots", "bot_voices_debates", "When bot voices are on: bots of a realm play the corpus's debates and long threads in /faction while you are online, one at a time, 30-45 minutes apart, never repeating a scene until all have played.", true)]
+		public static bool BOT_VOICES_DEBATES;
+
+		/// <summary>
+		/// Bots now and then start a private tell with the player (the talking update).
+		/// </summary>
+		[ServerProperty("bots", "bot_voices_tells", "When bot voices and bot memory are on: now and then (at most every 25-45 minutes) a bot sends you a tell: a friend saying hello or passing on news, a guildmate, or a solo bot of your level nearby asking to duo.", true)]
+		public static bool BOT_VOICES_TELLS;
+
+		/// <summary>
+		/// How busy realm chat is (the talking update): a multiplier on how often bots start /faction and /say lines.
+		/// </summary>
+		[ServerProperty("bots", "bot_voices_chat_rate", "When bot voices are on: how much bots talk unprompted, from 0 (only answers) to 3 (very busy). 1 is a normal evening; it already rises and falls with how many bots are on and the hour.", 1.0)]
+		public static double BOT_VOICES_CHAT_RATE;
+
+		public const string LIVING_SERVER_SETTINGS_VERSION_KEY = "living_server_settings_version";
+
+		/// <summary>The Living Server build whose default changes were last applied to this world (LivingServerSettingsUpgrade).</summary>
+		[ServerProperty("bots", LIVING_SERVER_SETTINGS_VERSION_KEY, "Living Server: the build whose new defaults were last applied to this world's saved settings (set by the server; leave it alone).", "")]
+		public static string LIVING_SERVER_SETTINGS_VERSION;
+
+		// ---- Server life (docs/LIVING-SERVER.md). Every part is off by default. ----
+
+		/// <summary>Bots remember the player: greetings by name, thanks for a rez or a group, gossip, grudges.</summary>
+		[ServerProperty("bots", "bot_living_memory", "Server life: autonomous gamebots of your realm remember grouping with you, your rezzes and rude words; they greet you by name, thank you for an old rez, answer you by name, mention you in /faction now and then, and stay cool after insults. Chat only. On by default since Beta 1.1. False keeps today's bots.", true)]
+		public static bool BOT_LIVING_MEMORY;
+
+		/// <summary>Grats from nearby, grouped and guilded bots when a character dings; /faction grats for a 50.</summary>
+		[ServerProperty("bots", "bot_living_grats", "Server life: when you or a bot gains a level, groupmates say grats in /group and bots nearby in /say, and a realm's bots cheer a new level 50 in /faction. On by default since Beta 1.1.", true)]
+		public static bool BOT_LIVING_GRATS;
+
+		/// <summary>Realm-wide announcements of server firsts, recorded for the Herald.</summary>
+		[ServerProperty("bots", "bot_living_firsts", "Server life: the first character on the server (you or a bot) to reach level 50, the first of each class to reach 50 and the first to each realm rank from 2 up are announced to everyone and recorded for the Camelot Herald.", true)]
+		public static bool BOT_LIVING_FIRSTS;
+
+		/// <summary>Rez requests and thanks, bots rezzing you, corpse runs and resurrection sickness chatter.</summary>
+		[ServerProperty("bots", "bot_living_death", "Server life: a bot that dies near you asks you for a rez if your class can rez, waits longer for it and thanks you after; a bot healer that is not in your group may rez you (you still accept or decline); bots talk about corpse runs and resurrection sickness.", true)]
+		public static bool BOT_LIVING_DEATH;
+
+		/// <summary>Player-style enemy sightings in /faction from bots in the frontier.</summary>
+		[ServerProperty("bots", "bot_living_alarms", "Server life: a bot in the frontier that sees 3 or more enemies calls it out in /faction (rough size, classes, place), at most one call per realm every 2 minutes.", true)]
+		public static bool BOT_LIVING_ALARMS;
+
+		/// <summary>Bots remember who killed them in RvR, call them out and celebrate revenge.</summary>
+		[ServerProperty("bots", "bot_living_nemesis", "Server life: a bot killed by an enemy remembers its killer, names it (by race and class) in /faction after the second kill, and celebrates when it kills that enemy back. Kills are recorded for the Camelot Herald's Most Wanted.", true)]
+		public static bool BOT_LIVING_NEMESIS;
+
+		/// <summary>When bots are online: the whole roster (off), shaped around your session, or by the real clock.</summary>
+		[ServerProperty("bots", "bot_schedule_mode", "Server life: when autonomous gamebots are online. off = the whole roster (today's behavior); session = each bot plays sessions of 1-4 hours with 20 minutes to 2 hours away, timed from server start; clock = your PC's time of day (busiest 7-11pm and weekends, quiet overnight).", "clock")]
+		public static string BOT_SCHEDULE_MODE;
+
+		/// <summary>Bots take short breaks (brb) and now and then go linkdead and come back.</summary>
+		[ServerProperty("bots", "bot_living_breaks", "Server life: an idle bot now and then says brb and logs off for 5-25 minutes, and a bot grouped with you rarely goes linkdead for 30-90 seconds (the group hears about it) and comes back with an apology. Never during a fight, siege or relic march.", true)]
+		public static bool BOT_LIVING_BREAKS;
+
+		/// <summary>Idle bots look around, emote, shift their feet, wave at you and cheer a ding nearby.</summary>
+		[ServerProperty("bots", "bot_living_body_language", "Server life: autonomous gamebots standing around in town, waiting for their group or resting look around, emote now and then (ponder, shrug, laugh, stretch their legs with a step or two in town), turn and wave at you when you walk up, and cheer when someone dings nearby. Only where a real player can see it; never in a fight. Bots cannot jump or sit (the game sends no such state for them).", true)]
+		public static bool BOT_LIVING_BODY_LANGUAGE;
+
+		/// <summary>About 4% of Crafter bots are beggars who live in their capital (AutonomousBeggars).</summary>
+		[ServerProperty("bots", "bot_living_beggars", "Server life: about 4% of the Crafter bots are beggars. They live in their capital, beg you and passing bots for coin and loot (drag coin or an item onto one to give it), sell what they are given and hoard every copper. Ask anyone for gold or items and the beggars follow you around the city insulting you and defending their corners until you leave. Beggars never group or fight.", true)]
+		public static bool BOT_LIVING_BEGGARS;
+
+		/// <summary>Bots that saw the player do something tell the realm; reputation and nicknames (AutonomousPlayerDeeds).</summary>
+		[ServerProperty("bots", "bot_living_deeds", "Server life: bots of your realm that see you solo a named monster, go on a kill streak in the frontier, get zerged or die to something silly tell /faction a few minutes later, and others react. Deeds build a reputation the realm talks about, and a nickname.", true)]
+		public static bool BOT_LIVING_DEEDS;
+
+		/// <summary>Gamebots remember the bots they grouped with; friends group again, grudges keep apart (AutonomousBotBonds).</summary>
+		[ServerProperty("bots", "bot_group_bonds", "Server life: gamebots remember the bots they grouped with. Good runs make friends who look for each other when forming a party; bots who never showed up or wiped the group too often are kept apart until a long wait makes them take anyone.", true)]
+		public static bool BOT_GROUP_BONDS;
+
+		/// <summary>Multi-day dramas between pairs of bots, played as /faction episodes (AutonomousBotStorylines).</summary>
+		[ServerProperty("bots", "bot_living_storylines", "Server life: pairs of bots live out dramas in /faction over days: a kill steal, a guild split, a romance, a ninja-loot trial. The same two bots play every episode; take a side in faction and the ending follows you.", true)]
+		public static bool BOT_LIVING_STORYLINES;
+
+		/// <summary>Gold spammers and roleplayers (AutonomousGoldSpammers, AutonomousRoleplayers).</summary>
+		[ServerProperty("bots", "bot_living_characters", "Server life: now and then a gold spammer floods /faction until it is banned, and a few bots roleplay in thee-and-thou speech while the realm mocks them.", true)]
+		public static bool BOT_LIVING_CHARACTERS;
+
+		/// <summary>True rumours: real rare spawns and undefended enemy keeps (AutonomousRumours).</summary>
+		[ServerProperty("bots", "bot_living_rumours", "Server life: bots pass on rumours that are true: a rare named monster that just spawned, or an enemy keep whose guards are down. Go and see.", true)]
+		public static bool BOT_LIVING_RUMOURS;
+
+		/// <summary>Holiday chatter around real holidays on the PC's calendar (AutonomousHolidays).</summary>
+		[ServerProperty("bots", "bot_living_holidays", "Server life: around Halloween, Thanksgiving, Christmas, New Year and other holidays on your PC's calendar, bots talk about them like 2003 players did and answer your holiday wishes.", true)]
+		public static bool BOT_LIVING_HOLIDAYS;
+
+		/// <summary>Now and then a raider charges the final boss early (AutonomousRaidLeeroy).</summary>
+		[ServerProperty("bots", "bot_living_leeroy", "Server life: one end-game raid in twenty has a bot who charges the final boss before the raid is ready, yelling his name, and the raid has to follow him in.", true)]
+		public static bool BOT_LIVING_LEEROY;
 
 
 

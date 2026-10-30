@@ -2666,6 +2666,7 @@ namespace DOL.GS
             {
                 Group.UpdateMember(this, false, true);
             }
+            QuestIndicators.Refresh(this); // markers follow a class change (trainer, /player class)
             return true;
         }
 
@@ -4351,7 +4352,7 @@ namespace DOL.GS
 
                     if (zoneBonus > 0)
                     {
-                        zoneBonus = (long) (zoneBonus * Properties.XP_RATE);
+                        zoneBonus = (long) (zoneBonus * LevelRangeXpRates.PlayerRate(Level));
                         Out.SendMessage(ZoneBonus.GetBonusMessage(this, (int) zoneBonus, ZoneBonusType.Xp), eChatType.CT_Important, eChatLoc.CL_SystemWindow);
                         GainExperience(new(zoneBonus, 0, 0, 0, 0, 0, false, false, eXPSource.Other), false);
                     }
@@ -4360,7 +4361,7 @@ namespace DOL.GS
                 if (CurrentRegion.IsRvR || CurrentZone.IsRvR)
                     baseXp = (long) (baseXp * Properties.RvR_XP_RATE);
                 else
-                    baseXp = (long) (baseXp * Properties.XP_RATE);
+                    baseXp = (long) (baseXp * LevelRangeXpRates.PlayerRate(Level));
 
                 long xpBonus = GetModified(eProperty.XpPoints);
 
@@ -4474,6 +4475,8 @@ namespace DOL.GS
                         Out.SendLevelUpSound();
                     }
                 }
+
+                QuestIndicators.Refresh(this); // markers follow the level at once, up or down
             }
         }
 
@@ -7922,6 +7925,8 @@ namespace DOL.GS
         public override bool MoveTo(ushort regionID, int x, int y, int z, ushort heading)
         {
             bool changingRegion = regionID != CurrentRegionID;
+            // Where a living player left from: gamebots in the player's group standing there go along (a release is no trip).
+            TemporaryGroupStableTravel.MarkTransferOrigin(this);
             // If we are jumping somewhere away from our house not using house.Exit, we need to make the server know we have left the house.
             if ((CurrentHouse != null || InHouse) && CurrentHouse.RegionID != regionID)
             {
@@ -11434,9 +11439,11 @@ namespace DOL.GS
         /// <returns>true if added, false if player is already doing the quest!</returns>
         public bool AddQuest(AbstractQuest quest)
         {
-            if (QuestList.Count > 25)
+            // The journal holds 25 quests, and a quest the player is on isn't added again (HearthDAoC).
+            if (QuestJournal.IsFull(QuestList.Count))
+                return false;
 
-            if (IsDoingQuest(quest) != null)
+            if (QuestList.Keys.Any(q => q.IsDoingQuest() && QuestJournal.Same(q, quest)))
                 return false;
 
             if (!AvailableQuestIndexes.TryDequeue(out byte index))
@@ -11445,6 +11452,7 @@ namespace DOL.GS
             QuestList.TryAdd(quest, index);
             quest.OnQuestAssigned(this);
             Out.SendQuestUpdate(quest);
+            QuestIndicators.Refresh(this); // markers change when a quest is taken
             return true;
         }
 
