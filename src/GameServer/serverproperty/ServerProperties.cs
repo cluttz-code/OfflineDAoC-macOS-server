@@ -744,14 +744,14 @@ namespace DOL.GS.ServerProperties
 		/// Optional XP rates by level range for real players, replacing XP_RATE inside each listed
 		/// range (see LevelRangeXpRates). Empty keeps the flat rate.
 		/// </summary>
-		[ServerProperty("rates", "xp_rate_by_level", "Optional XP rate by level range for real player characters, for example 1-19:3;20-34:5;35-50:12. Inside a listed range its rate replaces xp_rate; other levels keep xp_rate. RvR zones keep rvr_zones_xp_rate. Empty (the default) or an invalid value keeps the flat xp_rate.", "1-19:3;20-34:5;35-50:12")]
+		[ServerProperty("rates", "xp_rate_by_level", "Optional XP rate by level range for real player characters, for example 1-19:3;20-34:5;35-50:12. Inside a listed range its rate replaces xp_rate; other levels keep xp_rate. RvR zones keep rvr_zones_xp_rate. Empty (the default) or an invalid value keeps the flat xp_rate.", "")]
 		public static string XP_RATE_BY_LEVEL;
 
 		/// <summary>
 		/// Optional XP rates by level range for autonomous gamebots, replacing BOT_XP_RATE inside each
 		/// listed range (see LevelRangeXpRates). Empty keeps the flat rate.
 		/// </summary>
-		[ServerProperty("rates", "bot_xp_rate_by_level", "Optional XP rate by level range for autonomous gamebots, for example 1-19:1.5;20-34:2.5;35-50:6. Inside a listed range its rate replaces bot_xp_rate; other levels keep bot_xp_rate. In RvR zones the result is still multiplied by rvr_zones_xp_rate, as bot_xp_rate is. Empty (the default) or an invalid value keeps the flat bot_xp_rate. Companion bots and real players are not affected.", "1-19:1.5;20-34:2.5;35-50:6")]
+		[ServerProperty("rates", "bot_xp_rate_by_level", "Optional XP rate by level range for autonomous gamebots, for example 1-19:1.5;20-34:2.5;35-50:6. Inside a listed range its rate replaces bot_xp_rate; other levels keep bot_xp_rate. In RvR zones the result is still multiplied by rvr_zones_xp_rate, as bot_xp_rate is. Empty (the default) or an invalid value keeps the flat bot_xp_rate. Companion bots and real players are not affected.", "")]
 		public static string BOT_XP_RATE_BY_LEVEL;
 
 		/// <summary>
@@ -2351,7 +2351,7 @@ namespace DOL.GS.ServerProperties
 		/// <summary>
 		/// Autonomous gamebots form realm guilds, carry guild names and can be invited into a player's guild.
 		/// </summary>
-		[ServerProperty("guild", "bot_guilds_enabled", "Autonomous gamebots form and join realm guilds (see docs/BOT-GUILDS.md), and players can /ginvite them. False keeps every gamebot guildless; saved memberships are kept.", true)]
+		[ServerProperty("guild", "bot_guilds_enabled", "Autonomous gamebots form and join realm guilds (see docs/BOT-GUILDS.md), and players can /ginvite them. False keeps every gamebot guildless; saved memberships are kept.", false)]
 		public static bool BOT_GUILDS_ENABLED;
 
 		/// <summary>
@@ -2399,7 +2399,7 @@ namespace DOL.GS.ServerProperties
 		/// <summary>
 		/// Autonomous gamebots have personality types and traits that tilt how they spend their time.
 		/// </summary>
-		[ServerProperty("bots", "bot_personalities_enabled", "Autonomous gamebots get a personality (Leveler, Socialite, Daredevil, Explorer, Crafter, No-lifer) and traits, fixed from their id, that tilt town breaks, solo versus group goals, dungeon choice, camp choice and how often they talk (see docs/BOT-PERSONALITIES.md). Hard rules never change. False keeps today's behavior.", true)]
+		[ServerProperty("bots", "bot_personalities_enabled", "Autonomous gamebots get a personality (Leveler, Socialite, Daredevil, Explorer, Crafter, No-lifer) and traits, fixed from their id, that tilt town breaks, solo versus group goals, dungeon choice, camp choice and how often they talk (see docs/BOT-PERSONALITIES.md). Hard rules never change. False keeps today's behavior.", false)]
 		public static bool BOT_PERSONALITIES_ENABLED;
 
 		/// <summary>
