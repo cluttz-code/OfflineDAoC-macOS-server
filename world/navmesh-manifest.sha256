@@ -2,6 +2,7 @@
 # (the v0.36b release's runtime/server/navmesh with the v0.37 game patch's pockets.json). Only pockets.json differs
 # from classic-si-3 (0.36); the 103 .nav files, seams.json and roads.json are unchanged. sha256  file.
 # Checked by tools/package-navmeshes.sh and deploy/navmesh-install.sh.
+# Living Server 1.1-beta: zone277.nav (Hall of the Corrupt, Lord Gildas's room) carries the fork's fix from its tools/fork-build/content-patches.json.
 1c27f267dd74b83d3e1dac088ab14b46fc574b7081c8e0f05b665b9da1b9bef4  pockets.json
 4a8772ec8500a718e204650f875bf5722aefa3afebe2e582fbbbc34d5633e9e9  roads.json
 70774af9d79ee5f7bc75ef282d806dc85b0600869812f4c4db532d1a6b506357  seams.json
@@ -107,4 +108,4 @@ c44d801cf5f9e426ad50b2654fe95ccbdf82ac5f06bc73604abaf3c38c3812f7  zone250.nav
 cf818f60e439928ded00d75eb7cf692bb3d67d42098f2c6a01c8badddded364d  zone252.nav
 badf4da76ca634e7d620e4c33a84e5e0b47412a6043de5dd8bbd013898451eb9  zone253.nav
 1339b240c580b7d6b2ade98a74d41f1444cca4ffcfa30e8874029beeb50e2bdb  zone276.nav
-6112730fa0b8a2caed1fcd96212d918d2e09ccc0810f04b877cd976fc1c06d04  zone277.nav
+2d8b7da141b4ee383d40e241a66ba44e5ec386abbfababce4a9988eb023abcd0  zone277.nav
